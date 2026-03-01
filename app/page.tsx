@@ -18,7 +18,7 @@ interface PostCardProps {
   day: number;
 }
 
-// --- Sub-Component: Social Post Card (Lunar Crimson Theme) ---
+// --- Sub-Component: Social Post Card ---
 const PostCard = ({ platform, content, day }: PostCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(content);
@@ -96,16 +96,6 @@ const PostCard = ({ platform, content, day }: PostCardProps) => {
         >
           {isPosting ? "Processing..." : `Deploy to ${platform}`}
         </button>
-        <button
-          onClick={() => {
-            navigator.clipboard.writeText(editedContent);
-            alert("Copied to clipboard!");
-          }}
-          className="px-4 py-3.5 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors text-slate-400 hover:text-red-600"
-          title="Copy to clipboard"
-        >
-          📋
-        </button>
       </div>
     </div>
   );
@@ -114,7 +104,7 @@ const PostCard = ({ platform, content, day }: PostCardProps) => {
 // --- Main Page Component ---
 export default function Home() {
   const [inputContent, setInputContent] = useState("");
-  const [sourceType, setSourceType] = useState<"url" | "note">("url");
+  const [sourceType, setSourceType] = useState<"url" | "context">("url");
   const [campaign, setCampaign] = useState<CampaignDay[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -129,7 +119,6 @@ export default function Home() {
         body: JSON.stringify({
           context: inputContent,
           sourceType: sourceType,
-          // Temporary mock ID until we build the Login screen
           userId: "00000000-0000-0000-0000-000000000000",
         }),
       });
@@ -147,14 +136,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#fafafa] font-sans text-slate-900 selection:bg-red-100 selection:text-red-900">
-      {/* Visual Header: Moon-Nib Icon + Lunar Crimson Branding */}
       <header className="relative bg-slate-950 pt-20 pb-24 px-6 text-center overflow-hidden">
-        {/* Decorative Lunar Glow */}
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-red-900/10 rounded-full blur-[150px]"></div>
         <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-slate-900/40 rounded-full blur-[100px]"></div>
 
         <div className="relative z-10 flex flex-col items-center">
-          {/* Professional Mark: Moon-Nib SVG */}
           <div className="mb-6 bg-red-700 p-4 rounded-3xl shadow-2xl shadow-red-950/40 group hover:rotate-6 transition-transform duration-500 cursor-pointer">
             <svg
               width="36"
@@ -183,11 +169,11 @@ export default function Home() {
             <span className="w-8 h-[1px] bg-slate-800"></span>
           </p>
 
-          {/* The Universal Ingestor UI */}
           <div className="mt-10 max-w-2xl mx-auto w-full">
             {/* Tab Selectors */}
             <div className="flex justify-center gap-2 mb-3">
               <button
+                type="button"
                 onClick={() => setSourceType("url")}
                 className={`px-5 py-2 text-xs font-black uppercase tracking-widest rounded-t-xl transition-colors ${
                   sourceType === "url"
@@ -198,14 +184,15 @@ export default function Home() {
                 🔗 Web Link
               </button>
               <button
-                onClick={() => setSourceType("note")}
+                type="button"
+                onClick={() => setSourceType("context")}
                 className={`px-5 py-2 text-xs font-black uppercase tracking-widest rounded-t-xl transition-colors ${
-                  sourceType === "note"
+                  sourceType === "context"
                     ? "bg-white text-slate-900"
                     : "bg-slate-800 text-slate-400 hover:text-white"
                 }`}
               >
-                📝 Raw Note
+                📝 Added Context
               </button>
             </div>
 
@@ -213,15 +200,15 @@ export default function Home() {
             <div className="flex flex-col md:flex-row gap-0 p-1.5 bg-white rounded-b-3xl rounded-tr-3xl shadow-2xl border-[6px] border-slate-900 focus-within:border-red-900/30 transition-colors">
               {sourceType === "url" ? (
                 <input
-                  className="flex-1 px-6 py-4 outline-none text-slate-900 text-lg font-bold placeholder:text-slate-300 bg-transparent"
+                  className="flex-1 px-6 py-4 outline-none text-slate-900 text-lg font-bold placeholder:text-slate-300 bg-transparent transition-all"
                   placeholder="Paste source URL here..."
                   value={inputContent}
                   onChange={(e) => setInputContent(e.target.value)}
                 />
               ) : (
                 <textarea
-                  className="flex-1 px-6 py-4 outline-none text-slate-900 text-sm font-medium placeholder:text-slate-300 bg-transparent min-h-[60px] resize-y"
-                  placeholder="Paste your research context, meeting transcripts, or drafts here..."
+                  className="flex-1 px-6 py-4 outline-none text-slate-900 text-sm font-medium placeholder:text-slate-300 bg-transparent min-h-[140px] resize-y transition-all"
+                  placeholder="Paste your 5G optimization research gaps, transcripts, or drafts here..."
                   value={inputContent}
                   onChange={(e) => setInputContent(e.target.value)}
                 />
@@ -243,7 +230,6 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Main Campaign Grid */}
       <main className="max-w-7xl mx-auto p-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {["X", "LinkedIn", "Discord"].map((platform) => (
