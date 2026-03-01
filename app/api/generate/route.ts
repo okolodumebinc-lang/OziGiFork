@@ -5,11 +5,13 @@ export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {
-    const { context, sourceType, personaVoice } = await req.json();
+    const { urlContext, textContext, personaVoice } = await req.json();
 
-    let finalContext = context;
-    if (sourceType === "url") {
-      const urlResponse = await fetch(context, {
+    let finalContext = "";
+
+    // 1. Process URL if provided
+    if (urlContext && urlContext.trim() !== "") {
+      const urlResponse = await fetch(urlContext, {
         headers: {
           "User-Agent":
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36",
@@ -18,13 +20,28 @@ export async function POST(req: Request) {
       if (!urlResponse.ok)
         throw new Error("Target website blocked the request.");
       const rawHtml = await urlResponse.text();
-      finalContext = rawHtml
+      const scraped = rawHtml
         .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
         .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
         .replace(/<[^>]+>/g, " ")
         .replace(/\s+/g, " ");
+
+      finalContext += `[SOURCE ARTICLE/URL CONTENT]\n${scraped}\n\n`;
     }
 
+    // 2. Process Raw Notes if provided
+    if (textContext && textContext.trim() !== "") {
+      finalContext += `[ADDITIONAL USER NOTES/RAW TEXT]\n${textContext}\n\n`;
+    }
+
+    if (!finalContext.trim()) {
+      return NextResponse.json(
+        { error: "No context provided." },
+        { status: 400 }
+      );
+    }
+
+    // 3. Orchestrate with Gemini
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-pro",
@@ -33,10 +50,8 @@ export async function POST(req: Request) {
     });
 
     const prompt = `
-      TASK: Analyze the provided ${
-        sourceType === "url" ? "scraped webpage text" : "raw notes/drafts"
-      }.
-      Architect a 3-day social media distribution strategy. 
+      TASK: Analyze the provided context (which may include a scraped webpage, raw user notes, or both).
+      Architect a 3-day social media distribution strategy based on this information. 
       CRITICAL: If the persona dictates a specific sign-off, tone, or phrase, you MUST include it in the generated text for every single post.
 
       SOURCE CONTEXT:

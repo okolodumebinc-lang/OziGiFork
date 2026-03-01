@@ -24,7 +24,7 @@ const PostCard = ({ platform, content, day, webhookUrl }: PostCardProps) => {
   const [editedContent, setEditedContent] = useState(content);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
-  const [isCopied, setIsCopied] = useState(false); // New state for copy feedback
+  const [isCopied, setIsCopied] = useState(false);
 
   const charLimit = 250;
   const isLong = editedContent.length > charLimit;
@@ -37,7 +37,7 @@ const PostCard = ({ platform, content, day, webhookUrl }: PostCardProps) => {
     try {
       await navigator.clipboard.writeText(editedContent);
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000); // Reset after 2 seconds
+      setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
       alert("❌ Failed to copy text.");
     }
@@ -60,7 +60,6 @@ const PostCard = ({ platform, content, day, webhookUrl }: PostCardProps) => {
       });
 
       const data = await res.json();
-
       if (res.ok) {
         alert("✅ Shared to your Discord server!");
       } else {
@@ -82,7 +81,6 @@ const PostCard = ({ platform, content, day, webhookUrl }: PostCardProps) => {
           Day {day}
         </span>
 
-        {/* New Action Bar with Copy Button */}
         <div className="flex items-center gap-3">
           <button
             onClick={handleCopy}
@@ -129,7 +127,6 @@ const PostCard = ({ platform, content, day, webhookUrl }: PostCardProps) => {
         </button>
       )}
 
-      {/* Conditionally render the Deploy button ONLY for Discord to keep the UI clean */}
       {platform.toLowerCase() === "discord" && (
         <div className="mt-6 pt-5 border-t border-slate-100 flex gap-3">
           <button
@@ -147,8 +144,11 @@ const PostCard = ({ platform, content, day, webhookUrl }: PostCardProps) => {
 
 export default function Home() {
   const [session, setSession] = useState<any>(null);
-  const [inputContent, setInputContent] = useState("");
-  const [sourceType, setSourceType] = useState<"url" | "context">("url");
+
+  // Unified Context State
+  const [urlInput, setUrlInput] = useState("");
+  const [textInput, setTextInput] = useState("");
+
   const [campaign, setCampaign] = useState<CampaignDay[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -180,11 +180,10 @@ export default function Home() {
       .select("persona_voice, discord_webhook")
       .eq("user_id", userId)
       .maybeSingle();
-
     if (data) {
       setPersonaVoice(
         data.persona_voice ||
-          "You are a professional technical writer and developer educator. Your tone is highly technical, concise, and structured for maximum readability."
+          "You are a professional technical writer and developer educator."
       );
       setDiscordWebhook(data.discord_webhook || "");
     }
@@ -200,7 +199,6 @@ export default function Home() {
         .select("id")
         .eq("user_id", session.user.id)
         .maybeSingle();
-
       let dbError;
 
       if (existingProfile) {
@@ -252,9 +250,9 @@ export default function Home() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          context: inputContent,
-          sourceType: sourceType,
-          personaVoice: personaVoice, // Explicitly sending the persona here!
+          urlContext: urlInput,
+          textContext: textInput,
+          personaVoice: personaVoice,
         }),
       });
       const data = await res.json();
@@ -373,60 +371,41 @@ export default function Home() {
             <span className="w-8 h-[1px] bg-slate-800"></span>
           </p>
 
-          <div className="mt-10 max-w-2xl mx-auto w-full">
-            <div className="flex justify-center gap-2 mb-3">
-              <button
-                type="button"
-                onClick={() => setSourceType("url")}
-                className={`px-5 py-2 text-xs font-black uppercase tracking-widest rounded-t-xl transition-colors ${
-                  sourceType === "url"
-                    ? "bg-white text-slate-900"
-                    : "bg-slate-800 text-slate-400 hover:text-white"
-                }`}
-              >
-                🔗 Web Link
-              </button>
-              <button
-                type="button"
-                onClick={() => setSourceType("context")}
-                className={`px-5 py-2 text-xs font-black uppercase tracking-widest rounded-t-xl transition-colors ${
-                  sourceType === "context"
-                    ? "bg-white text-slate-900"
-                    : "bg-slate-800 text-slate-400 hover:text-white"
-                }`}
-              >
-                📝 Added Context
-              </button>
-            </div>
-
-            <div className="flex flex-col md:flex-row gap-0 p-1.5 bg-white rounded-b-3xl rounded-tr-3xl shadow-2xl border-[6px] border-slate-900 focus-within:border-red-900/30 transition-colors">
-              {sourceType === "url" ? (
+          <div className="mt-10 max-w-3xl mx-auto w-full">
+            {/* The Unified Input Block */}
+            <div className="flex flex-col gap-4 p-5 bg-white/10 backdrop-blur-xl rounded-[2rem] shadow-2xl border-[4px] border-slate-800/50 focus-within:border-red-900/50 transition-colors">
+              <div className="flex items-center bg-white rounded-2xl px-5 py-2 shadow-inner border border-slate-200">
+                <span className="text-xl mr-3 opacity-50">🔗</span>
                 <input
-                  className="flex-1 px-6 py-4 outline-none text-slate-900 text-lg font-bold placeholder:text-slate-300 bg-transparent"
-                  placeholder="Paste source URL here..."
-                  value={inputContent}
-                  onChange={(e) => setInputContent(e.target.value)}
+                  className="flex-1 outline-none text-slate-900 text-sm font-bold bg-transparent py-2 placeholder:text-slate-400"
+                  placeholder="Paste an article URL here..."
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
                   disabled={!session}
                 />
-              ) : (
+              </div>
+
+              <div className="flex items-start bg-white rounded-2xl px-5 py-3 shadow-inner border border-slate-200">
+                <span className="text-xl mr-3 mt-1 opacity-50">📝</span>
                 <textarea
-                  className="flex-1 px-6 py-4 outline-none text-slate-900 text-sm font-medium placeholder:text-slate-300 bg-transparent min-h-[140px] resize-y"
+                  className="flex-1 outline-none text-slate-900 text-sm font-medium bg-transparent min-h-[100px] resize-y placeholder:text-slate-400"
                   placeholder={
                     session
-                      ? "Paste your notes here..."
-                      : "Please connect GitHub..."
+                      ? "Add specific instructions, research gaps, or rough notes for this post..."
+                      : "Please connect GitHub to unlock the Context Tank..."
                   }
-                  value={inputContent}
-                  onChange={(e) => setInputContent(e.target.value)}
+                  value={textInput}
+                  onChange={(e) => setTextInput(e.target.value)}
                   disabled={!session}
                 />
-              )}
+              </div>
+
               <button
                 onClick={generateCampaign}
-                disabled={loading || !inputContent || !session}
-                className="bg-red-700 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-red-800 transition-all active:scale-95 disabled:bg-slate-200 mt-2 md:mt-0"
+                disabled={loading || (!urlInput && !textInput) || !session}
+                className="w-full bg-red-700 text-white px-8 py-4 rounded-xl font-black uppercase tracking-widest hover:bg-red-800 transition-all active:scale-95 disabled:bg-slate-300 disabled:text-slate-500 mt-1 shadow-lg shadow-red-900/20"
               >
-                {loading ? "Reasoning..." : "Ingest"}
+                {loading ? "Reasoning & Ingesting..." : "Synthesize Strategy"}
               </button>
             </div>
           </div>
