@@ -208,7 +208,7 @@ export default function Home() {
               ) : (
                 <textarea
                   className="flex-1 px-6 py-4 outline-none text-slate-900 text-sm font-medium placeholder:text-slate-300 bg-transparent min-h-[140px] resize-y transition-all"
-                  placeholder="Paste your 5G optimization research gaps, transcripts, or drafts here..."
+                  placeholder="Paste your personal notes, transcripts, or drafts here..."
                   value={inputContent}
                   onChange={(e) => setInputContent(e.target.value)}
                 />
