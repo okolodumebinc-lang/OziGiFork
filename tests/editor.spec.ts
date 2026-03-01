@@ -1,43 +1,49 @@
 import { test, expect } from "@playwright/test";
 
-test("should allow inline editing of generated posts", async ({ page }) => {
-  // 1. MOCK THE API: Intercept the request so we don't hit the real Gemini API
-  await page.route("/api/generate", async (route) => {
-    const fakeResponse = {
-      output: JSON.stringify({
-        campaign: [
-          {
-            day: 1,
-            x: "Mocked X Post",
-            linkedin: "Mocked LI",
-            discord: "Mocked Discord",
-          },
-        ],
-      }),
-    };
-    await route.fulfill({ json: fakeResponse });
+test.describe("WriterHelper v2 Core UI", () => {
+  test.beforeEach(async ({ page }) => {
+    // Navigate to the app before each test
+    await page.goto("/");
   });
 
-  // 2. Navigate to the app
-  await page.goto("/");
+  test("loads the primary header and context tank", async ({ page }) => {
+    // 1. Verify the brand heading
+    await expect(page.locator("h1")).toContainText("WriterHelper");
+    await expect(page.getByText("Context Tank")).toBeVisible();
 
-  // 3. Trigger the generation
-  const input = page.getByPlaceholder(/Source article URL/i);
-  await input.fill("https://dev.to/dumebii/test-article");
-  await page.getByRole("button", { name: /Architect/i }).click();
+    // 2. Verify the Auth Bridge is asking for login
+    const connectBtn = page.getByRole("button", { name: /Connect GitHub/i });
+    await expect(connectBtn).toBeVisible();
+  });
 
-  // 4. Wait for the actual mocked card to appear (looking for the specific emoji)
-  const editBtn = page.getByRole("button", { name: /✏️ Edit/i }).first();
-  await expect(editBtn).toBeVisible(); // This wait is now safe and instant!
-  await editBtn.click();
+  test("displays the unified multi-modal inputs", async ({ page }) => {
+    // 1. Verify the URL input is present and locked
+    const urlInput = page.getByPlaceholder("Paste an article URL here...");
+    await expect(urlInput).toBeVisible();
+    await expect(urlInput).toBeDisabled();
 
-  // 5. Test the Edit logic
-  const textarea = page.locator("textarea");
-  await textarea.fill("This is a manual QA edit.");
+    // 2. Verify the Textarea input is present and locked
+    const textInput = page.getByPlaceholder(
+      "Please connect GitHub to unlock the Context Tank..."
+    );
+    await expect(textInput).toBeVisible();
+    await expect(textInput).toBeDisabled();
 
-  const saveBtn = page.getByRole("button", { name: /💾 Save/i });
-  await saveBtn.click();
+    // 3. Verify the core action button
+    const synthesizeBtn = page.getByRole("button", {
+      name: /Synthesize Strategy/i,
+    });
+    await expect(synthesizeBtn).toBeVisible();
+    await expect(synthesizeBtn).toBeDisabled();
+  });
 
-  // 6. Verify the edit was saved to the DOM
-  await expect(page.getByText("This is a manual QA edit.")).toBeVisible();
+  test("renders the social distribution pipelines", async ({ page }) => {
+    // 1. Verify all three columns rendered
+    await expect(page.getByText("X Pipeline")).toBeVisible();
+    await expect(page.getByText("LinkedIn Pipeline")).toBeVisible();
+    await expect(page.getByText("Discord Pipeline")).toBeVisible();
+
+    // 2. Verify the empty state placeholder
+    await expect(page.getByText("Awaiting Context Injection")).toBeVisible();
+  });
 });
