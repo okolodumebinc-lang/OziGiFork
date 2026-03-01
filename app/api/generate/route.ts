@@ -1,41 +1,79 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
+
+// Initialize the Supabase client for the server environment
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function POST(req: Request) {
   try {
-    const { context, userId, sourceType } = await req.json();
+    const { context, sourceType, userId } = await req.json();
 
-    // 1. Fetch User Persona from Supabase
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized. Please connect GitHub." },
+        { status: 401 }
+      );
+    }
+
+    // 1. Fetch the User's Dynamic Persona from Supabase
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("persona_voice")
       .eq("user_id", userId)
       .single();
 
-    if (profileError) throw new Error("Could not load user persona.");
+    if (profileError) {
+      console.error("Supabase Error:", profileError);
+      throw new Error("Failed to load identity matrix.");
+    }
 
+    const personaVoice =
+      profile?.persona_voice || "You are a professional content architect.";
+
+    // 2. Process the "Context Tank" Input
+    let finalContext = context;
+    if (sourceType === "url") {
+      // If it's a link, fetch the raw HTML.
+      // Gemini's context window is smart enough to extract the core text from the raw DOM.
+      const urlResponse = await fetch(context);
+      if (!urlResponse.ok) throw new Error("Could not read the provided URL.");
+      finalContext = await urlResponse.text();
+    }
+
+    // 3. Orchestrate with Gemini
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
+
+    // We use Gemini 1.5 Pro here for its massive context window (ideal for raw HTML and long thesis notes)
     const model = genAI.getGenerativeModel({
       model: "gemini-1.5-pro",
-      generationConfig: { responseMimeType: "application/json" },
+      // Injecting your Supabase Profile natively as the System Prompt
+      systemInstruction: personaVoice,
     });
 
-    // 2. Dynamic Prompting based on User's Unique Voice
     const prompt = `
-      You are an AI Content Architect. 
-      USER PERSONA: ${profile.persona_voice}
-      
-      TASK: Analyze the following ${sourceType} and generate a 3-day social strategy.
-      SOURCE CONTENT: ${context}
+      TASK: Analyze the provided ${
+        sourceType === "url" ? "webpage HTML/content" : "raw notes/drafts"
+      }.
+      Based on this context, architect a 3-day social media distribution strategy.
 
-      Return ONLY JSON: {"campaign": [{"day": 1, "x": "...", "linkedin": "...", "discord": "..."}]}
+      SOURCE CONTEXT:
+      ${finalContext}
+
+      OUTPUT RULES:
+      Return ONLY a valid JSON object containing an array named "campaign". 
+      Format: {"campaign": [{"day": 1, "x": "...", "linkedin": "...", "discord": "..."}, ...]}
     `;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    return NextResponse.json({ output: response.text() });
+    const outputText = response.text();
+
+    return NextResponse.json({ output: outputText });
   } catch (error: any) {
+    console.error("Generation Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
