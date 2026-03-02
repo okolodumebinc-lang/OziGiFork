@@ -96,7 +96,7 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
 
           {/* X (TWITTER) */}
           <button
-            onClick={() => handleSignIn("twitter")}
+            onClick={() => handleSignIn("x" as Provider)}
             disabled={!!loadingProvider}
             className="w-full flex items-center justify-center gap-3 bg-black border-2 border-black text-white hover:bg-slate-800 px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all disabled:opacity-50"
           >
