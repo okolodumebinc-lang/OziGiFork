@@ -12,7 +12,7 @@ export default function Distillery({
   loading,
 }: DistilleryProps) {
   return (
-    <section className="flex flex-col gap-4 p-6 bg-white rounded-[2.5rem] shadow-2xl border border-slate-100">
+    <section className="flex flex-col gap-4 p-6 pb-10 bg-white rounded-[2.5rem] shadow-2xl border border-slate-100">
       <div className="flex items-center bg-slate-50 rounded-2xl px-5 py-2 border border-slate-200 group focus-within:border-red-500/50 transition-colors">
         <span className="text-xl mr-3 opacity-30 group-focus-within:opacity-100">
           🔗
