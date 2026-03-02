@@ -32,7 +32,7 @@ export default function Footer() {
             rel="noreferrer"
             className="hover:text-red-500 transition-colors"
           >
-            Dev.to
+            Blog
           </a>
           <a
             href="mailto:okolodumebi@gmail.com"

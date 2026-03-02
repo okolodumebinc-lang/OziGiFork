@@ -45,7 +45,7 @@ export default function Header({
               <path d="M12 2L19 12L12 22L5 12L12 2Z" fill="white" />
             </svg>
           </div>
-          <span className="font-black italic uppercase tracking-tighter text-slate-900 hidden sm:block">
+          <span className="font-black italic uppercase tracking-tighter text-red-900">
             Ozigi
           </span>
         </div>
