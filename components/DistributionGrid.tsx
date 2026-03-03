@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { CampaignDay } from "../lib/types";
 
-// 1. ✨ RESTORED: The 250-character limit with "Read More" toggle
+// 1. Expandable Text Component (250 char limit)
 function ExpandableText({ text }: { text: string }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const isLong = text.length > 250;
@@ -24,7 +24,7 @@ function ExpandableText({ text }: { text: string }) {
   );
 }
 
-// 2. ✨ NEW: A Unified Card that handles Editing, Copying, and Posting
+// 2. Universal Social Card Component
 function SocialCard({
   day,
   initialText,
@@ -50,7 +50,6 @@ function SocialCard({
 
   return (
     <div className="bg-white rounded-[2rem] border-2 border-slate-100 shadow-lg flex flex-col p-6 hover:border-slate-300 transition-colors">
-      {/* Card Header: Day + Actions */}
       <div className="flex justify-between items-center mb-4 pb-4 border-b border-slate-100">
         <span className="text-xs font-black uppercase tracking-widest text-slate-900">
           Day {day}
@@ -71,7 +70,6 @@ function SocialCard({
         </div>
       </div>
 
-      {/* Content Area */}
       {isEditing ? (
         <textarea
           value={text}
@@ -82,7 +80,6 @@ function SocialCard({
         <ExpandableText text={text} />
       )}
 
-      {/* Optional Post Button */}
       {onPost && actionButtonConfig && (
         <button
           onClick={() => onPost(text, day)}
@@ -102,7 +99,7 @@ function SocialCard({
   );
 }
 
-// 3. ✨ RESTORED: Grouped by Platform instead of Day
+// 3. Main Grid Component
 export default function DistributionGrid({
   campaign,
   session,
@@ -112,12 +109,10 @@ export default function DistributionGrid({
 }) {
   const [xStatuses, setXStatuses] = useState<{ [day: number]: "idle" | "loading" | "success" | "error" }>({});
   const [discordStatuses, setDiscordStatuses] = useState<{ [day: number]: "idle" | "loading" | "success" | "error" }>({});
+  const [liStatuses, setLiStatuses] = useState<{ [day: number]: "idle" | "loading" | "success" | "error" }>({});
 
   const handlePostToX = async (text: string, day: number) => {
-    if (!session?.access_token) {
-      alert("You must be signed in to post!");
-      return;
-    }
+    if (!session?.access_token) return alert("You must be signed in to post!");
     setXStatuses((prev) => ({ ...prev, [day]: "loading" }));
     try {
       const res = await fetch("/api/publish/x", {
@@ -159,14 +154,36 @@ export default function DistributionGrid({
     }
   };
 
+  const handlePostToLinkedIn = async (text: string, day: number) => {
+    if (!session?.access_token) return alert("You must be signed in to post!");
+    setLiStatuses((prev) => ({ ...prev, [day]: "loading" }));
+    try {
+      const res = await fetch("/api/publish/linkedin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ text, userId: session.user.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to post to LinkedIn");
+      setLiStatuses((prev) => ({ ...prev, [day]: "success" }));
+      setTimeout(() => setLiStatuses((prev) => ({ ...prev, [day]: "idle" })), 3000);
+    } catch (error: any) {
+      console.error("LinkedIn Posting Error:", error);
+      setLiStatuses((prev) => ({ ...prev, [day]: "error" }));
+      alert(`Failed to post: ${error.message}`);
+    }
+  };
+
   const hasX = campaign.some((d) => d.x);
   const hasLinkedIn = campaign.some((d) => d.linkedin);
   const hasDiscord = campaign.some((d) => d.discord);
 
   return (
     <div className="space-y-16 animate-in fade-in slide-in-from-bottom-4">
-      
-      {/* --- X (TWITTER) ROW --- */}
+      {/* X ROW */}
       {hasX && (
         <section>
           <div className="flex items-center gap-3 mb-6">
@@ -197,7 +214,7 @@ export default function DistributionGrid({
         </section>
       )}
 
-      {/* --- LINKEDIN ROW --- */}
+      {/* LINKEDIN ROW */}
       {hasLinkedIn && (
         <section>
           <div className="flex items-center gap-3 mb-6">
@@ -214,14 +231,21 @@ export default function DistributionGrid({
                 key={`li-${dayData.day}`}
                 day={dayData.day}
                 initialText={dayData.linkedin}
-                // No onPost for LinkedIn yet
+                onPost={handlePostToLinkedIn}
+                postStatus={liStatuses[dayData.day]}
+                actionButtonConfig={{
+                  idle: "💼 Post to LinkedIn",
+                  loading: "Posting...",
+                  success: "✅ Published!",
+                  classes: "bg-[#0A66C2] text-white hover:bg-[#004182] active:scale-95",
+                }}
               />
             ))}
           </div>
         </section>
       )}
 
-      {/* --- DISCORD ROW --- */}
+      {/* DISCORD ROW */}
       {hasDiscord && (
         <section>
           <div className="flex items-center gap-3 mb-6">
