@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "../lib/supabase";
 import { CampaignDay } from "../lib/types";
 import Hero from "../components/Hero";
@@ -14,6 +14,7 @@ export default function Home() {
   const [session, setSession] = useState<any>(null);
   const [view, setView] = useState<"landing" | "dashboard">("landing");
   const [loading, setLoading] = useState(false);
+  const campaignRef = useRef<HTMLDivElement>(null);
   const [campaign, setCampaign] = useState<CampaignDay[]>([]);
   const [inputs, setInputs] = useState<{
     url: string;
@@ -32,11 +33,27 @@ export default function Home() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   useEffect(() => {
+    // 1. Restore saved view
     const savedView = localStorage.getItem("writerhelper_view") as
       | "landing"
       | "dashboard";
     if (savedView) setView(savedView);
 
+    // 🚨 NEW: URL ERROR CATCHER & CLEANER 🚨
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const searchParams = new URLSearchParams(window.location.search);
+    const errorDesc =
+      hashParams.get("error_description") ||
+      searchParams.get("error_description");
+
+    if (errorDesc) {
+      // Decode the URL text (turns "+" into spaces) and set it to your error banner
+      setErrorMessage(decodeURIComponent(errorDesc).replace(/\+/g, " "));
+      // Instantly wipe the ugly error from the browser URL bar
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+
+    // 2. Handle Supabase Auth
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session?.user) fetchHistory(session.user.id);
@@ -44,10 +61,31 @@ export default function Home() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
-      if (session?.user) fetchHistory(session.user.id);
+
+      if (session?.user) {
+        fetchHistory(session.user.id);
+
+        // 🚨 THE TOKEN CATCHER 🚨
+        if (session.provider_token) {
+          const provider = session.user.app_metadata.provider;
+          const { error } = await supabase.from("user_tokens").upsert(
+            {
+              user_id: session.user.id,
+              provider: provider,
+              access_token: session.provider_token,
+              refresh_token: session.provider_refresh_token || null,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "user_id, provider" }
+          );
+
+          if (error) console.error("Failed to save provider token:", error);
+        }
+      }
     });
+
     return () => subscription.unsubscribe();
   }, []);
 
@@ -114,6 +152,12 @@ export default function Home() {
 
       if (finalCampaign.campaign) {
         setCampaign(finalCampaign.campaign);
+        setTimeout(() => {
+          campaignRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }, 100);
         if (session?.user) {
           await supabase.from("campaigns").insert({
             user_id: session.user.id,
@@ -210,9 +254,25 @@ export default function Home() {
               loading={loading}
             />
 
-            {campaign.length > 0 && (
-              <div className="mt-16">
-                <DistributionGrid campaign={campaign} />
+            {/* ✨ NEW: Pulsing Loading State */}
+            {loading && (
+              <div className="mt-16 space-y-8 animate-pulse">
+                <div className="h-8 bg-slate-200 rounded w-64 mx-auto mb-8"></div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {[1, 2, 3].map((i) => (
+                    <div
+                      key={i}
+                      className="bg-slate-100 rounded-[2rem] h-96 border-2 border-slate-200"
+                    ></div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ✨ The Auto-Scrolling Grid */}
+            {campaign.length > 0 && !loading && (
+              <div className="mt-16 scroll-mt-32" ref={campaignRef}>
+                <DistributionGrid campaign={campaign} session={session} />
               </div>
             )}
           </div>

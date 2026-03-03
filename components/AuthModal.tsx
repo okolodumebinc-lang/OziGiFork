@@ -8,11 +8,20 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
 
   const handleSignIn = async (provider: Provider) => {
     setLoadingProvider(provider);
+
+    // Define the specific write permissions we need for each platform
+    let scopes = undefined;
+    if (provider === "x") {
+      scopes = "tweet.read tweet.write users.read offline.access";
+    } else if (provider === "linkedin_oidc") {
+      scopes = "w_member_social openid profile email";
+    }
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        // This ensures they are redirected back to the app after logging in
         redirectTo: `${window.location.origin}/`,
+        scopes: scopes, // 👈 Ask for write permission here!
       },
     });
 
