@@ -19,10 +19,12 @@ export default function Home() {
     url: string;
     text: string;
     file: File | null;
+    tweetFormat: "single" | "thread";
   }>({
     url: "",
     text: "",
     file: null,
+    tweetFormat: "single",
   });
   const [errorMessage, setErrorMessage] = useState("");
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -68,6 +70,7 @@ export default function Home() {
       url: record.source_url || "",
       text: record.source_notes || "",
       file: null,
+      tweetFormat: "single", // Fallback for old campaigns
     });
     setCampaign(record.generated_content);
     setIsHistoryOpen(false);
@@ -83,6 +86,7 @@ export default function Home() {
       if (inputs.url) formData.append("urlContext", inputs.url);
       if (inputs.text) formData.append("textContext", inputs.text);
       if (inputs.file) formData.append("file", inputs.file);
+      formData.append("tweetFormat", inputs.tweetFormat);
       formData.append("personaVoice", "Expert Content Strategist");
 
       // 2. Do NOT set the 'Content-Type' header.

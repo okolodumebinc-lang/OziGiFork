@@ -2,7 +2,12 @@
 import { useState } from "react";
 
 interface DistilleryProps {
-  inputs: { url: string; text: string; file?: File | null };
+  inputs: {
+    url: string;
+    text: string;
+    file?: File | null;
+    tweetFormat: "single" | "thread";
+  };
   setInputs: (val: any) => void;
   onGenerate: () => void;
   loading: boolean;
@@ -51,6 +56,46 @@ export default function Distillery({
                 onChange={(e) => setInputs({ ...inputs, url: e.target.value })}
               />
             </div>
+
+            {/* ✨ Quick Examples Row */}
+            <div className="flex flex-wrap items-center gap-2 mt-1 px-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mr-2">
+                Try an example:
+              </span>
+              <button
+                onClick={() =>
+                  setInputs({
+                    ...inputs,
+                    url: "https://dev.to/dummy/using-perplexity-ai-and-gemini-pro-for-academic-research",
+                  })
+                }
+                className="px-3 py-2 bg-white text-slate-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200 rounded-xl text-[10px] font-bold transition-all border border-slate-200 shadow-sm active:scale-95"
+              >
+                🧠 AI Research Blog
+              </button>
+              <button
+                onClick={() =>
+                  setInputs({
+                    ...inputs,
+                    url: "https://playwright.dev/docs/intro",
+                  })
+                }
+                className="px-3 py-2 bg-white text-slate-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200 rounded-xl text-[10px] font-bold transition-all border border-slate-200 shadow-sm active:scale-95"
+              >
+                🎭 Playwright Docs
+              </button>
+              <button
+                onClick={() =>
+                  setInputs({
+                    ...inputs,
+                    url: "https://arxiv.org/abs/dummy-5g-anomaly-detection-edge",
+                  })
+                }
+                className="px-3 py-2 bg-white text-slate-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200 rounded-xl text-[10px] font-bold transition-all border border-slate-200 shadow-sm active:scale-95"
+              >
+                📡 5G Research Paper
+              </button>
+            </div>
           </div>
         )}
 
@@ -94,10 +139,39 @@ export default function Distillery({
           </div>
         )}
 
+        {/* ✨ Output Formatting Preferences */}
+        <div className="mt-6 mb-2 flex flex-col gap-2 animate-in fade-in">
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-2">
+            X (Twitter) Format Preference
+          </span>
+          <div className="flex bg-slate-50 p-1 rounded-[1.2rem] border border-slate-200">
+            <button
+              onClick={() => setInputs({ ...inputs, tweetFormat: "single" })}
+              className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                inputs.tweetFormat === "single"
+                  ? "bg-white text-slate-900 shadow-sm border border-slate-200"
+                  : "text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              Single Tweet
+            </button>
+            <button
+              onClick={() => setInputs({ ...inputs, tweetFormat: "thread" })}
+              className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                inputs.tweetFormat === "thread"
+                  ? "bg-white text-slate-900 shadow-sm border border-slate-200"
+                  : "text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              Full Thread
+            </button>
+          </div>
+        </div>
+
         <button
           onClick={onGenerate}
           disabled={loading || (!inputs.url && !inputs.text && !inputs.file)}
-          className="w-full mt-6 bg-red-700 text-white py-6 rounded-[1.8rem] font-black uppercase tracking-widest hover:bg-red-800 transition-all disabled:bg-slate-200 shadow-xl shadow-red-900/10 active:scale-[0.98]"
+          className="w-full mt-4 bg-red-700 text-white py-6 rounded-[1.8rem] font-black uppercase tracking-widest hover:bg-red-800 transition-all disabled:bg-slate-200 shadow-xl shadow-red-900/10 active:scale-[0.98]"
         >
           {loading ? "Architecting Strategy..." : "Generate Social Campaign"}
         </button>

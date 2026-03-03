@@ -15,6 +15,7 @@ export async function POST(req: Request) {
     const urlContext = formData.get("urlContext") as string | null;
     const textContext = formData.get("textContext") as string | null;
     const personaVoice = formData.get("personaVoice") as string | null;
+    const tweetFormat = formData.get("tweetFormat") as string | "single"; // 👈 Extract this
     const file = formData.get("file") as File | null;
 
     let finalContext = "";
@@ -63,6 +64,11 @@ export async function POST(req: Request) {
       TASK: Analyze the provided context (which may include scraped webpages, raw notes, images, or PDFs).
       Architect a 3-day social media distribution strategy based on this information. 
       CRITICAL: If the persona dictates a specific sign-off, tone, or phrase, you MUST include it in the generated text for every single post.
+
+      CRITICAL X/TWITTER FORMAT RULE: 
+      The user requested the Twitter format to be: "${tweetFormat}".
+      If "single", the "x" field must contain EXACTLY ONE punchy, high-impact tweet.
+      If "thread", the "x" field must contain a compelling 3-to-5 part thread. Separate each part of the thread with two blank lines and number them (e.g., 1/5, 2/5).
 
       SOURCE TEXT CONTEXT:
       ${finalContext}
