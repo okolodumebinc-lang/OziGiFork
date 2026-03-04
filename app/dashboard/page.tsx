@@ -57,12 +57,26 @@ export default function Dashboard() {
       setSession(session);
       if (session?.user) {
         fetchHistory(session.user.id);
+        // 🚨 UPGRADED TOKEN CATCHER 🚨
         if (session.provider_token) {
-          const provider = session.user.app_metadata.provider;
+          // Because users can link accounts, we must figure out WHICH provider this token belongs to.
+          // We do this by finding the most recently updated identity in their session.
+          const identities = session.user.identities || [];
+          const latestIdentity = identities.reduce((prev, current) =>
+            new Date(prev.updated_at || 0).getTime() >
+            new Date(current.updated_at || 0).getTime()
+              ? prev
+              : current
+          );
+
+          const provider = latestIdentity
+            ? latestIdentity.provider
+            : session.user.app_metadata.provider;
+
           await supabase.from("user_tokens").upsert(
             {
               user_id: session.user.id,
-              provider: provider,
+              provider: provider, // Accurately logs 'x' or 'linkedin_oidc' even if they signed up with Google
               access_token: session.provider_token,
               refresh_token: session.provider_refresh_token || null,
               updated_at: new Date().toISOString(),
