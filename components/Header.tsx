@@ -101,6 +101,7 @@ export default function Header({
         <SettingsModal
           session={session}
           onClose={() => setIsSettingsOpen(false)}
+          //onPersonaCreated={fetchPersonas}
         />
       )}
     </>
