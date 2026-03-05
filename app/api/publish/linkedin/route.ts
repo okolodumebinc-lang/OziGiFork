@@ -16,41 +16,50 @@ export async function POST(req: Request) {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    // Fetch LinkedIn Access Token (Supabase usually stores the provider profile id here too)
-    // ✨ The Upgraded, Crash-Proof Query
+    // ✨ 1. Only ask for the access_token (no provider_id to crash the database)
     const { data: tokenData, error: tokenError } = await supabase
       .from("user_tokens")
-      .select("access_token, provider_id")
+      .select("access_token")
       .eq("user_id", userId)
       .in("provider", ["linkedin", "linkedin_oidc"])
-      .order('created_at', { ascending: false }) // Grab the newest one
+      .order("created_at", { ascending: false })
       .limit(1)
-      .maybeSingle(); // Prevents crashing if there are 0 or 2+ rows
-
-    // ✨ Let's log the actual error to your Vercel/CodeSandbox terminal!
-    if (tokenError) {
-      console.error("Supabase Database Error:", tokenError);
-    }
+      .maybeSingle();
 
     if (tokenError || !tokenData) {
-      // If it fails now, check your server logs for the exact reason
       return NextResponse.json(
-        { error: `Database failed to find token: ${tokenError?.message || "No row found."}` }, 
+        {
+          error: `Database failed to find token: ${
+            tokenError?.message || "No row found."
+          }`,
+        },
         { status: 401 }
       );
     }
+
     const linkedInToken = tokenData.access_token;
-    // LinkedIn requires the user's URN to post. Supabase usually stores the provider ID.
-    const authorUrn = `urn:li:person:${tokenData.provider_id}`;
+
+    // ✨ 2. Fetch the user's ID directly from LinkedIn on the fly
+    const profileRes = await fetch("https://api.linkedin.com/v2/userinfo", {
+      headers: { Authorization: `Bearer ${linkedInToken}` },
+    });
+
+    if (!profileRes.ok) {
+      throw new Error("Failed to authenticate token with LinkedIn.");
+    }
+
+    const profileData = await profileRes.json();
+    // LinkedIn stores their unique ID in the "sub" field for OIDC
+    const authorUrn = `urn:li:person:${profileData.sub}`;
 
     let assetUrn: string | undefined = undefined;
 
-    // ✨ The 3-Step Image Handshake
+    // ✨ 3. The 3-Step Image Handshake
     if (imageUrl) {
       const base64Data = imageUrl.replace(/^data:image\/\w+;base64,/, "");
       const imageBuffer = Buffer.from(base64Data, "base64");
 
-      // Step 1: Register the Upload
+      // Step A: Register the Upload
       const registerRes = await fetch(
         "https://api.linkedin.com/v2/assets?action=registerUpload",
         {
@@ -81,7 +90,7 @@ export async function POST(req: Request) {
         ].uploadUrl;
       assetUrn = registerData.value.asset;
 
-      // Step 2: Upload the binary data
+      // Step B: Upload the binary data
       await fetch(uploadUrl, {
         method: "PUT",
         headers: { Authorization: `Bearer ${linkedInToken}` },
@@ -89,7 +98,7 @@ export async function POST(req: Request) {
       });
     }
 
-    // ✨ Step 3: Create the Post
+    // ✨ 4. Create the Post
     const postPayload: any = {
       author: authorUrn,
       lifecycleState: "PUBLISHED",
@@ -113,7 +122,10 @@ export async function POST(req: Request) {
       body: JSON.stringify(postPayload),
     });
 
-    if (!postRes.ok) throw new Error("LinkedIn rejected the post");
+    const postResult = await postRes.json();
+
+    if (!postRes.ok)
+      throw new Error(postResult.message || "LinkedIn rejected the post");
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
