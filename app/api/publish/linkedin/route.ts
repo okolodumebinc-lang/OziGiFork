@@ -17,20 +17,28 @@ export async function POST(req: Request) {
     );
 
     // Fetch LinkedIn Access Token (Supabase usually stores the provider profile id here too)
+    // ✨ The Upgraded, Crash-Proof Query
     const { data: tokenData, error: tokenError } = await supabase
       .from("user_tokens")
       .select("access_token, provider_id")
       .eq("user_id", userId)
       .in("provider", ["linkedin", "linkedin_oidc"])
-      .single();
+      .order('created_at', { ascending: false }) // Grab the newest one
+      .limit(1)
+      .maybeSingle(); // Prevents crashing if there are 0 or 2+ rows
+
+    // ✨ Let's log the actual error to your Vercel/CodeSandbox terminal!
+    if (tokenError) {
+      console.error("Supabase Database Error:", tokenError);
+    }
 
     if (tokenError || !tokenData) {
+      // If it fails now, check your server logs for the exact reason
       return NextResponse.json(
-        { error: "LinkedIn not connected." },
+        { error: `Database failed to find token: ${tokenError?.message || "No row found."}` }, 
         { status: 401 }
       );
     }
-
     const linkedInToken = tokenData.access_token;
     // LinkedIn requires the user's URN to post. Supabase usually stores the provider ID.
     const authorUrn = `urn:li:person:${tokenData.provider_id}`;
