@@ -243,7 +243,12 @@ export default function DistributionGrid({
     }
   };
 
-  const handlePostToLinkedIn = async (text: string, day: number) => {
+  // ✨ 1. Add imageUrl to the accepted parameters
+  const handlePostToLinkedIn = async (
+    text: string,
+    day: number,
+    imageUrl?: string
+  ) => {
     if (!session?.access_token) return alert("You must be signed in to post!");
     setLiStatuses((prev) => ({ ...prev, [day]: "loading" }));
     try {
@@ -253,7 +258,8 @@ export default function DistributionGrid({
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ text, userId: session.user.id }),
+        // ✨ 2. Add imageUrl to the payload being sent to the backend!
+        body: JSON.stringify({ text, userId: session.user.id, imageUrl }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to post to LinkedIn");
