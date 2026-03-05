@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    // ✨ 1. Extract the new graphicTitle from the payload
+    // 1. Extract the new graphicTitle from the payload
     const { text, platform, graphicTitle } = await req.json();
 
     if (!text) {
@@ -13,21 +13,25 @@ export async function POST(req: Request) {
     let prompt = "";
     let negativePrompt = "";
 
-    // ✨ 2. The Prompt Switcher
+    // 2. The Prompt Switcher (Upgraded for "Highly Cracked CTO" performance)
     if (graphicTitle && graphicTitle.trim() !== "") {
-      // MODE A: Precision Typography
-      prompt = `A clean, modern, professional graphic. In the center, prominently featuring the exact text "${graphicTitle.trim()}" written in bold, highly legible, stylish modern typography. The background is a vibrant, minimalist conceptual design representing the theme of the text. Suitable for a ${platform} post.`;
+      // MODE A: Precision Typography (This was already working well)
+      prompt = `A clean, modern, professional graphic. In the center, prominently featuring the exact text "${graphicTitle.trim()}" written in bold, highly legible, stylish modern typography. The background is a vibrant, minimalist conceptual design representing the theme of the text. Suitable for a ${platform} post. High resolution, professional design.`;
       negativePrompt =
-        "spelling mistakes, typos, gibberish, messy fonts, unreadable text, extra letters";
+        "spelling mistakes, typos, gibberish, messy fonts, unreadable text, extra letters, alien text, unreadable words";
     } else {
-      // MODE B: Ironclad Abstract (No Text allowed!)
+      // ✨ MODE B: Ironclad Abstract (Vastly Upgraded suppression)
       const cleanText = text
         .replace(/[\u{1F600}-\u{1F6FF}]/gu, "")
         .substring(0, 150);
-      prompt = `A clean, modern, professional abstract conceptual graphic representing the core theme of: "${cleanText}". Suitable for a ${platform} post. High quality, aesthetic, vibrant minimalist illustration.`;
-      // The negative prompt mathematically subtracts these elements from the pixel map
+
+      // We are moving the prompt to be purely about geometry, light, and color
+      prompt = `A sleek, professional, purely abstract conceptual graphic. Modern aesthetic with clean geometric shapes, harmonious vibrant color palette, high-tech gradients, and glowing data points. Highly conceptual minimalism, octane render quality. Suitable for a ${platform} post. High resolution, detailed textures, cinematic lighting. It does NOT contain any text.`;
+
+      // ✨ The Expanded "Zero Text" Negative Prompt
+      // This mathematically banishes all forms of letters, words, and even text-like scribbles
       negativePrompt =
-        "text, words, letters, typography, watermark, signature, writing, alphabet, fonts, gibberish, labels";
+        "text, words, letters, characters, script, calligraphy, handwriting, alphabet, typography, watermark, signature, writing, scribble, squiggles, gibberish, alien text, unreadable text, messy text, messy fonts, number, figures, blurbs, titles, labels, captions, paragraphs, layout with text, text-boxes, placeholders for text, extra letters, misspelled words, extra words, blurred text";
     }
 
     const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
@@ -65,7 +69,7 @@ export async function POST(req: Request) {
           parameters: {
             sampleCount: 1,
             aspectRatio: "16:9",
-            negativePrompt: negativePrompt, // ✨ Pass our dynamic shield
+            negativePrompt: negativePrompt, // ✨ Pass our upgraded dynamic shield
           },
         }),
       }
