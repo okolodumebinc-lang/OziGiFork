@@ -22,7 +22,6 @@ export async function POST(req: Request) {
       .select("access_token")
       .eq("user_id", userId)
       .in("provider", ["linkedin", "linkedin_oidc"])
-      .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
 
