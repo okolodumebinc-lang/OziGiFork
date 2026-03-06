@@ -298,8 +298,8 @@ export default function Dashboard() {
             onGenerate={handleGenerate}
             loading={loading}
             userPersonas={userPersonas} // ✨ Pass the fetched personas to the dropdown!
-            onOpenSettings={() => setIsSettingsModalOpen(true)}
-          />
+onOpenSettings={() => window.dispatchEvent(new Event("openSettingsModal"))}
+            />
 
           {loading && (
             <div className="mt-16 space-y-8 animate-pulse">
