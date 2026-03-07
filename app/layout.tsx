@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     siteName: "Ozigi",
     images: [
       {
-        url: "/opengraph-image.png", // Points to public/landing-preview.png
+        url: "/opengraph-image.png",
         width: 1200,
         height: 630,
         alt: "Ozigi.app Landing Page Preview",
@@ -36,19 +36,12 @@ export const metadata: Metadata = {
     title: "Ozigi - Your Catchy Slogan",
     description: "A brief description of what Ozigi.app does.",
     images: ["/opengraph-image.png"],
-=======
     title: 'Ozigi | The Agentic Content Engine',
-    description: 'Turn your raw technical research into structured, multi-platform social media campaigns.',
+    description: 'Docs as code? Meet content as code.',
     url: 'https://ozigi.app',
     siteName: 'Ozigi',
     type: 'website',
   },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Ozigi | The Agentic Content Engine',
-    description: 'Docs as code? Meet content as code.',
-  },
-};
 
 export default function RootLayout({
   children,
