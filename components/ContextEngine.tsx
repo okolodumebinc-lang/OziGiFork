@@ -3,11 +3,16 @@ import { useState } from "react";
 import DynamicLoader from "@/components/DynamicLoader";
 
 interface DistilleryProps {
+  session?: any;
+  userPersonas?: { id: string; name: string }[];
+  onOpenSettings?: () => void;
   inputs: {
     url: string;
     text: string;
     file?: File | null;
     tweetFormat: "single" | "thread";
+    additionalInfo?: string;
+    personaId?: string;
   };
   setInputs: (val: any) => void;
   onGenerate: () => void;
@@ -17,12 +22,34 @@ interface DistilleryProps {
 type Tab = "text" | "link" | "file";
 
 export default function Distillery({
+  session,
+  userPersonas = [],
+  onOpenSettings,
   inputs,
   setInputs,
   onGenerate,
   loading,
 }: DistilleryProps) {
   const [activeTab, setActiveTab] = useState<Tab>("link");
+  const [showAdvanced, setShowAdvanced] = useState(false); // ✨ NEW: Controls progressive disclosure
+
+  const handlePersonaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    if (value === "create_new") {
+      if (onOpenSettings) onOpenSettings();
+      setInputs({ ...inputs, personaId: "default" });
+    } else {
+      setInputs({ ...inputs, personaId: value });
+    }
+  };
+
+  if (loading) {
+    return (
+      <section className="flex flex-col items-center justify-center p-8 bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden min-h-[400px]">
+        <DynamicLoader />
+      </section>
+    );
+  }
 
   return (
     <section className="flex flex-col gap-6 p-2 bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
@@ -58,45 +85,35 @@ export default function Distillery({
               />
             </div>
 
-            {/* ✨ Quick Examples Row */}
-            <div className="flex flex-wrap items-center gap-2 mt-1 px-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mr-2">
-                Try an example:
-              </span>
-              <button
-                onClick={() =>
-                  setInputs({
-                    ...inputs,
-                    url: "https://dev.to/dummy/using-perplexity-ai-and-gemini-pro-for-academic-research",
-                  })
-                }
-                className="px-3 py-2 bg-white text-slate-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200 rounded-xl text-[10px] font-bold transition-all border border-slate-200 shadow-sm active:scale-95"
-              >
-                🧠 AI Research Blog
-              </button>
-              <button
-                onClick={() =>
-                  setInputs({
-                    ...inputs,
-                    url: "https://playwright.dev/docs/intro",
-                  })
-                }
-                className="px-3 py-2 bg-white text-slate-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200 rounded-xl text-[10px] font-bold transition-all border border-slate-200 shadow-sm active:scale-95"
-              >
-                🎭 Playwright Docs
-              </button>
-              <button
-                onClick={() =>
-                  setInputs({
-                    ...inputs,
-                    url: "https://arxiv.org/abs/dummy-5g-anomaly-detection-edge",
-                  })
-                }
-                className="px-3 py-2 bg-white text-slate-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200 rounded-xl text-[10px] font-bold transition-all border border-slate-200 shadow-sm active:scale-95"
-              >
-                📡 5G Research Paper
-              </button>
-            </div>
+            {/* ✨ Cleaned up Quick Examples */}
+            {!inputs.url && (
+              <div className="flex flex-wrap items-center gap-3 mt-1 px-2 text-[10px] font-black uppercase tracking-widest">
+                <span className="text-slate-400">Examples:</span>
+                <button
+                  onClick={() =>
+                    setInputs({
+                      ...inputs,
+                      url: "https://dev.to/dumebii/ozigi-v2-changelog-building-a-modular-agentic-content-engine-with-nextjs-supabase-and-playwright-59mo",
+                    })
+                  }
+                  className="text-slate-500 hover:text-red-600 transition-colors text-left"
+                >
+                  Ozigi V2
+                </button>
+                <span className="text-slate-300">•</span>
+                <button
+                  onClick={() =>
+                    setInputs({
+                      ...inputs,
+                      url: "https://currents.dev/posts/how-to-debug-playwright-tests-in-ci",
+                    })
+                  }
+                  className="text-slate-500 hover:text-red-600 transition-colors text-left"
+                >
+                  Playwright CI
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -112,7 +129,7 @@ export default function Distillery({
           </div>
         )}
 
-        {/* 📎 FILE TAB (v3 Roadmap Support) */}
+        {/* 📎 FILE TAB */}
         {activeTab === "file" && (
           <div className="flex flex-col items-center justify-center bg-slate-50 rounded-2xl p-8 border-2 border-dashed border-slate-200 group hover:border-red-500/50 transition-all cursor-pointer animate-in fade-in slide-in-from-bottom-2">
             <span className="text-3xl mb-3">📁</span>
@@ -140,46 +157,112 @@ export default function Distillery({
           </div>
         )}
 
-        {/* ✨ Output Formatting Preferences */}
-        <div className="mt-6 mb-2 flex flex-col gap-2 animate-in fade-in">
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-2">
-            X (Twitter) Format Preference
-          </span>
-          <div className="flex bg-slate-50 p-1 rounded-[1.2rem] border border-slate-200">
-            <button
-              onClick={() => setInputs({ ...inputs, tweetFormat: "single" })}
-              className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                inputs.tweetFormat === "single"
-                  ? "bg-white text-slate-900 shadow-sm border border-slate-200"
-                  : "text-slate-400 hover:text-slate-600"
-              }`}
-            >
-              Single Tweet
-            </button>
-            <button
-              onClick={() => setInputs({ ...inputs, tweetFormat: "thread" })}
-              className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                inputs.tweetFormat === "thread"
-                  ? "bg-white text-slate-900 shadow-sm border border-slate-200"
-                  : "text-slate-400 hover:text-slate-600"
-              }`}
-            >
-              Full Thread
-            </button>
+        {/* ✨ The Progressive Disclosure Toggle */}
+        <button
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="w-full mt-6 py-3 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-700 hover:bg-slate-50 rounded-xl transition-all border border-transparent hover:border-slate-200"
+        >
+          {showAdvanced
+            ? "Hide Advanced Options ⬆"
+            : "⚙️ Advanced Options (Personas, Formats) ⬇"}
+        </button>
+
+        {/* ✨ The Hidden Engine Room */}
+        {showAdvanced && (
+          <div className="mt-4 p-5 bg-slate-50 rounded-[1.5rem] border border-slate-200 animate-in fade-in slide-in-from-top-2 flex flex-col gap-6">
+            {/* Persona Selector */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 mb-1">
+                  🗣️ Voice Persona
+                </h4>
+              </div>
+
+              {!session ? (
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-red-500 bg-red-50 px-3 py-2 rounded-lg border border-red-100 whitespace-nowrap">
+                    🔒 Sign in to unlock
+                  </span>
+                </div>
+              ) : (
+                <select
+                  value={inputs.personaId || "default"}
+                  onChange={handlePersonaChange}
+                  className="text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 focus:outline-none cursor-pointer hover:border-slate-300"
+                >
+                  <option value="default">Default (Pragmatic Tech)</option>
+                  {userPersonas.map((persona) => (
+                    <option key={persona.id} value={persona.id}>
+                      {persona.name}
+                    </option>
+                  ))}
+                  <option
+                    value="create_new"
+                    className="font-black text-red-600"
+                  >
+                    + Create New Persona
+                  </option>
+                </select>
+              )}
+            </div>
+
+            {/* Directives */}
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-900 mb-2 flex items-center gap-2">
+                Campaign Directives
+              </label>
+              <input
+                type="text"
+                value={inputs.additionalInfo || ""}
+                onChange={(e) =>
+                  setInputs({ ...inputs, additionalInfo: e.target.value })
+                }
+                placeholder="e.g., Target junior devs. (No tone instructions here)"
+                className="w-full text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-slate-400 transition-colors"
+              />
+            </div>
+
+            {/* X Format Toggle */}
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-900 mb-2 block">
+                X (Twitter) Format
+              </label>
+              <div className="flex bg-white p-1 rounded-xl border border-slate-200">
+                <button
+                  onClick={() =>
+                    setInputs({ ...inputs, tweetFormat: "single" })
+                  }
+                  className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                    inputs.tweetFormat === "single"
+                      ? "bg-slate-100 text-slate-900 shadow-sm"
+                      : "text-slate-400 hover:text-slate-600"
+                  }`}
+                >
+                  Single Tweet
+                </button>
+                <button
+                  onClick={() =>
+                    setInputs({ ...inputs, tweetFormat: "thread" })
+                  }
+                  className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                    inputs.tweetFormat === "thread"
+                      ? "bg-slate-100 text-slate-900 shadow-sm"
+                      : "text-slate-400 hover:text-slate-600"
+                  }`}
+                >
+                  Full Thread
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
 
         <button
           onClick={onGenerate}
-          disabled={loading || (!inputs.url && !inputs.text && !inputs.file)}
-          className="w-full mt-4 bg-red-700 text-white py-6 rounded-[1.8rem] font-black uppercase tracking-widest hover:bg-red-800 transition-all disabled:bg-slate-200 shadow-xl shadow-red-900/10 active:scale-[0.98]"
+          disabled={!inputs.url && !inputs.text && !inputs.file}
+          className="w-full mt-6 bg-red-700 text-white py-6 rounded-[1.8rem] font-black uppercase tracking-widest hover:bg-red-800 transition-all disabled:bg-slate-200 disabled:text-slate-400 shadow-xl shadow-red-900/10 active:scale-[0.98]"
         >
-          {loading ? (
-            <DynamicLoader />
-          ) : (
-            // Your normal Generate Button or Form goes here
-            <button onClick={onGenerate}>Generate Campaign</button>
-          )}
+          Generate Campaign ⚡
         </button>
       </div>
     </section>
