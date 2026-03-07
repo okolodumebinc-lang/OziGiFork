@@ -20,8 +20,22 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Ozigi | Agentic Social Media Manager",
     description:
-      "Architect 3-day social media distribution strategies from raw context and URLs.",
+      "Build a 3-day social media distribution campaign from raw context, in your own voice.",
     siteName: "Ozigi",
+    images: [
+      {
+        url: "/opengraph-image.png", // Points to public/landing-preview.png
+        width: 1200,
+        height: 630,
+        alt: "Ozigi.app Landing Page Preview",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Ozigi - Your Catchy Slogan",
+    description: "A brief description of what Ozigi.app does.",
+    images: ["/opengraph-image.png"],
   },
 };
 
