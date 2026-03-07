@@ -174,7 +174,7 @@ export default function Distillery({
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 mb-1">
-                  🗣️ Voice Persona
+                  🗣️ Voice or Persona
                 </h4>
               </div>
 
