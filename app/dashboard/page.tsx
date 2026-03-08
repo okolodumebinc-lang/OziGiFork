@@ -248,12 +248,15 @@ export default function Dashboard() {
             </div>
           )}
 
-          <Distillery
-            inputs={inputs}
-            setInputs={setInputs}
-            onGenerate={handleGenerate}
-            loading={loading}
-          />
+<Distillery
+  session={session}
+  userPersonas={personas}
+  inputs={inputs}
+  setInputs={setInputs}
+  loading={loading}
+  onOpenSettings={() => window.dispatchEvent(new Event("openSettingsModal"))}
+  onGenerate={handleGenerate} 
+/>
 
           {loading && (
             <div className="mt-16 space-y-8 animate-pulse">
