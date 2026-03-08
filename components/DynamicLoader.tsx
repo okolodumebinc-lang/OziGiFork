@@ -44,6 +44,7 @@ export default function DynamicLoader() {
           {loadingSteps[stepIndex]}
         </p>
       </div>
+      <p>
           {loadingSteps[stepIndex]}
         </p>
       </div>
