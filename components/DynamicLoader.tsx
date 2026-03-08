@@ -3,12 +3,25 @@ import { useState, useEffect } from "react";
 
 const loadingSteps = [
   "🔍 Scanning repository structure...",
-  "🧠 Analyzing codebase context...",
+  "🧠 Analysing codebase context...",
   "⚙️ Extracting key technical insights...",
   "📝 Drafting X distribution strategy...",
-  "💼 Optimizing LinkedIn hooks...",
+  "💼 Optimising LinkedIn hooks...",
   "👾 Structuring Discord announcements...",
-  "✨ Finalizing your campaign...",
+  "✨ Finalising your campaign...",
+    "⌛Ten more seconds, really... ",
+  "🔄️Countdown with me...",
+  "10...🕙",
+  "9...🕙",
+  "8...🕙",
+  "7...🕙",
+  "6...🕙",
+  "5...🕙",
+  "4...🕙",
+  "3...🕙",
+  "2...🕙",
+  "1...🕙",
+  "Worth the wait, wasn't it? 😁💖"
 ];
 
 export default function DynamicLoader() {
