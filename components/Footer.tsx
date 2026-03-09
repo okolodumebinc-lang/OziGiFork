@@ -1,4 +1,6 @@
 "use client";
+import Link from "next/link";
+
 
 export default function Footer() {
   return (
@@ -12,6 +14,18 @@ export default function Footer() {
           and structured distribution.
         </p>
         <div className="flex flex-wrap justify-center gap-4 md:gap-6 mb-6 md:mb-8 text-[9px] md:text-[10px] font-black tracking-widest uppercase">
+              <Link 
+                href="/docs" 
+                className={`text-[10px] md:text-xs font-black uppercase tracking-widest transition-colors  hover:text-slate-900'}`}
+              >
+                Docs
+              </Link>
+              <Link 
+                href="/architecture" 
+                className={`text-[10px] md:text-xs font-black uppercase tracking-widest transition-colors hover:text-slate-900'}`}
+              >
+                Architecture
+              </Link>
           <a
             href="https://linkedin.com/in/dumebi-okolo"
             target="_blank"

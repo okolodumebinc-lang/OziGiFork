@@ -53,6 +53,20 @@ export default function Header({
           </Link>
 
           <div className="flex items-center gap-2 md:gap-4">
+                        <nav className="hidden md:flex items-center gap-4 mr-2 border-r border-slate-200 pr-4">
+              <Link 
+                href="/docs" 
+                className={`text-[10px] md:text-xs font-black uppercase tracking-widest transition-colors ${pathname === '/docs' ? 'text-red-700' : 'text-slate-500 hover:text-slate-900'}`}
+              >
+                Docs
+              </Link>
+              <Link 
+                href="/architecture" 
+                className={`text-[10px] md:text-xs font-black uppercase tracking-widest transition-colors ${pathname === '/architecture' ? 'text-red-700' : 'text-slate-500 hover:text-slate-900'}`}
+              >
+                Architecture
+              </Link>
+            </nav>
             {pathname === "/" ? (
               <Link
                 href="/dashboard"
