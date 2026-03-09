@@ -79,7 +79,7 @@ export default function DemoSandbox() {
             </h1>
             <p className="text-slate-500 font-medium max-w-xl mx-auto">
               Paste a link, drop some text, or upload a file. Click generate to see exactly how the engine architects your content. 
-              <br/><span className="text-xs text-red-500 font-bold mt-2 block">(Demo Mode: Outputs are pre-calculated for speed)</span>
+              <br/><span className="text-xs text-red-500 font-bold mt-2 block">Demo Mode</span>
             </p>
           </div>
 
@@ -101,7 +101,7 @@ export default function DemoSandbox() {
               <div className="mb-8 p-6 bg-slate-900 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
                 <div>
                   <h3 className="text-white font-black uppercase tracking-widest text-sm mb-1">Wow. That was fast.</h3>
-                  <p className="text-slate-400 text-xs font-medium">Create a free account to unlock live API generation, custom database personas, and full history storage.</p>
+                  <p className="text-slate-400 text-xs font-medium">Create a free account to unlock full content generation, custom persona, direct social integrations and full history storage.</p>
                 </div>
                 <Link href="/" className="px-6 py-3 bg-white text-slate-900 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-slate-100 transition-colors whitespace-nowrap">
                   Sign Up Free
