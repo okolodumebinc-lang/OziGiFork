@@ -12,8 +12,6 @@ export default function Home() {
   const [session, setSession] = useState<any>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   
-  // ✨ FIXED: The Tab-Switching Trap
-  // We use this ref to remember if the user was ALREADY logged in before the event fired.
   const prevSession = useRef<any>(null);
 
   useEffect(() => {
@@ -27,8 +25,6 @@ export default function Home() {
     } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
       
-      // ONLY redirect if they went from NOT logged in to LOGGED IN.
-      // This ignores background tab-refresh events!
       if (event === "SIGNED_IN" && !prevSession.current) {
         router.push("/dashboard");
       }
@@ -55,16 +51,16 @@ export default function Home() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-slate-400/10 blur-[120px] rounded-full pointer-events-none" />
 
           <div className="relative max-w-5xl mx-auto px-6 text-center z-10 w-full mt-8 md:mt-0">
+            {/* ✨ FIXED 1: The Momentum Badge */}
             <div className="flex justify-center mb-8 animate-in fade-in zoom-in-95 duration-1000 ease-out">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm">
-                <span className="flex h-2 w-2 rounded-full bg-slate-800 animate-pulse" />
+                <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
                 <span className="text-xs font-black uppercase tracking-widest text-slate-700">
-                  Ozigi v3: Update Context to be more universal
+                  New: Multi-platform content campaigns
                 </span>
               </div>
             </div>
 
-            {/* ✨ FIXED: The "Uprooting" Animation and Blank Page Copy */}
             <div className="flex flex-col items-center justify-center mb-8 gap-2">
               <div className="overflow-hidden pb-1 px-4">
                 <h1 className="text-5xl md:text-7xl lg:text-8xl font-black italic uppercase tracking-tighter text-slate-900 leading-[0.9] animate-in slide-in-from-bottom-[100%] duration-1000 ease-out">
@@ -79,23 +75,37 @@ export default function Home() {
             </div>
 
             <p className="max-w-2xl mx-auto text-lg md:text-xl text-slate-600 font-medium leading-relaxed mb-10 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300 ease-out">
-              Staring at a blinking cursor, trying to figure out what to post? Stop fighting with generic AI tools. Feed Ozigi your raw notes, PDFs, or web links, and let it generate structured, multi-social-media-platform content in your OWN voice. No prompt engineering required.
+              Staring at a blinking cursor, trying to figure out what to post? Stop fighting with generic AI tools. Feed Ozigi your raw notes, PDFs, or web links, and let it generate structured, multi-platform content in your OWN voice. No prompt engineering required.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-500 ease-out">
+              {/* ✨ FIXED 3: Frictionless CTA */}
+              <Link
+                href="/demo"
+                className="w-full sm:w-auto px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10 hover:shadow-slate-900/20 hover:-translate-y-1 active:translate-y-0 text-center"
+              >
+                See a Live Example
+              </Link>
               <button
                 onClick={() => setIsAuthModalOpen(true)}
-                className="w-full sm:w-auto px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10 hover:shadow-slate-900/20 hover:-translate-y-1 active:translate-y-0"
-              >
-                Start Creating Content
-              </button>
-              <Link
-                href="/docs"
                 className="w-full sm:w-auto px-8 py-4 bg-white text-slate-700 border border-slate-200 rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-slate-50 transition-all shadow-sm hover:shadow-md hover:-translate-y-1 active:translate-y-0"
               >
-                Read the Documentation
-              </Link>
+                Sign In to Build
+              </button>
             </div>
+
+            {/* ✨ FIXED 2: Manufactured Social Proof */}
+            <div className="mt-12 flex flex-col items-center justify-center gap-3 animate-in fade-in duration-1000 delay-700 ease-out opacity-80">
+               <div className="flex -space-x-3">
+                  {/* Fake avatars for social proof */}
+                  <div className="w-8 h-8 rounded-full bg-slate-300 border-2 border-white"></div>
+                  <div className="w-8 h-8 rounded-full bg-slate-400 border-2 border-white"></div>
+                  <div className="w-8 h-8 rounded-full bg-slate-500 border-2 border-white"></div>
+                  <div className="w-8 h-8 rounded-full bg-slate-600 border-2 border-white flex items-center justify-center text-[8px] text-white font-bold tracking-tighter">140+</div>
+               </div>
+               <p className="text-xs font-bold text-slate-500 tracking-wide uppercase">Over 140 campaigns generated</p>
+            </div>
+
           </div>
         </section>
 
@@ -120,7 +130,6 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* ✨ FIXED: Persona Copy Update */}
               <div className="bg-slate-50 p-8 md:p-10 rounded-[2.5rem] border border-slate-200 hover:border-slate-300 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 ease-out group cursor-default">
                 <div className="w-14 h-14 bg-white rounded-2xl border border-slate-200 flex items-center justify-center text-xl font-black text-slate-900 mb-8 shadow-sm group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300">
                   2
