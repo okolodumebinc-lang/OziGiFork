@@ -4,7 +4,7 @@ Ozigi is a universal context engine designed to cure "blank page syndrome" for t
 
 Instead of relying on generic prompt engineering, Ozigi ingests raw, unformatted context (PDFs, scraped URLs, meeting transcripts, or rough notes) and architects a structured, multi-platform social media distribution strategy in a strictly constrained, authentic human voice.
 
-![Ozigi Hero](https://ozigi.app/heropage.png)
+![Ozigi Hero](https://ozigi.app/opengraph-image.png)
 
 ## 🚀 The Core Problem it Solves
 Generative AI often produces content that sounds robotic, relies heavily on predictable lexicons (e.g., "delve", "robust", "tapestry"), and ignores the user's actual technical context. Ozigi solves this by wrapping an enterprise-grade LLM in strict stylistic constraints and persona-based routing, ensuring the output is highly bursty, pragmatic, and ready for immediate distribution.
