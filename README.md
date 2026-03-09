@@ -1,29 +1,58 @@
-# OziGi ✦ Agentic Content Engine
+# Ozigi: The Intelligent Context Engine ⚡
 
-Stop staring at your articles, wondering what to post. OziGi is a high-signal AI agent built for content professionals, technical writers, and developer educators. It extracts the core insights from your long-form content and architects a ready-to-deploy 3-day distribution strategy for X, LinkedIn, and Discord.
+Ozigi is a universal context engine designed to cure "blank page syndrome" for technical writers, founders, and content creators. 
 
+Instead of relying on generic prompt engineering, Ozigi ingests raw, unformatted context (PDFs, scraped URLs, meeting transcripts, or rough notes) and architects a structured, multi-platform social media distribution strategy in a strictly constrained, authentic human voice.
 
-## 🚀 Features (v2)
+![Ozigi Hero](https://ozigi.app/opengraph-image.png)
 
-* **Multi-Modal Ingestion (The Context Engine):** Simultaneously process live URLs and raw text (meeting transcripts, personal notes, specific angles) to give the engine perfect context.
-* **Custom Persona Matrix:** Steer the AI with granular system prompts so the output actually sounds like you, not a robot.
-* **GitHub Authentication:** Secure OAuth via Supabase to protect your workspace.
-* **Persistent Context History:** Auto-save every distillation. Browse your past campaigns and restore previous context with a single click.
-* **Native Discord Deployment:** One-click publishing directly to your community servers via Webhooks.
-* **Expert UI/UX:** A clean, focus-driven React/Next.js interface designed to eliminate workflow friction.
+## 🚀 The Core Problem it Solves
+Generative AI often produces content that sounds robotic, relies heavily on predictable lexicons (e.g., "delve", "robust", "tapestry"), and ignores the user's actual technical context. Ozigi solves this by wrapping an enterprise-grade LLM in strict stylistic constraints and persona-based routing, ensuring the output is highly bursty, pragmatic, and ready for immediate distribution.
 
-## 🛠️ Tech Stack
-* **Framework:** Next.js (App Router)
-* **Styling:** Tailwind CSS
-* **Authentication & Database:** Supabase (PostgreSQL + RLS)
-* **Testing:** Playwright (E2E Automated Workflows)
-* **Deployment:** Vercel
+## ✨ Key Features
+- **Multimodal Context Ingestion:** Drop in a URL, paste unformatted text, or upload a PDF/Image. Ozigi extracts the core narrative without requiring pre-summarization.
+- **Voice Personas (Database-Backed):** Users can create and save custom voice profiles. The engine dynamically maps the selected persona to the prompt, guaranteeing stylistic consistency across campaigns.
+- **Banned Lexicon & Anti-Detection:** The API enforces strict negative constraints, actively forbidding the use of cheesy AI buzzwords and restricting emoji/hashtag formatting.
+- **Omnichannel Routing:** A single generation yields distinct, platform-optimized outputs for X (Twitter) threads, LinkedIn posts, and Discord markdown announcements.
+- **Perceived Performance UI:** Features a custom, determinate loading sequence that builds psychological suspense, masking the standard 15-second LLM generation wait time.
 
-## 🗺️ v3 Roadmap (Coming Soon)
-OziGi v2 solved the context extraction problem. v3 solves the distribution pipeline:
-- [ ] **Native X (Twitter) API Integration:** Authenticate and deploy threads directly to your timeline.
-- [ ] **Native LinkedIn API Integration:** Publish long-form professional posts natively from the dashboard.
-- [ ] **Automated AI Image Generation:** Auto-generate and attach contextual cover images for each day's post.
+## 🛠 Tech Stack & Architecture
+- **Frontend:** Next.js (App Router), React, Tailwind CSS
+- **Backend/API:** Next.js Route Handlers, Vercel Edge/Serverless Functions
+- **AI Engine:** Google Cloud Vertex AI (Gemini 2.5 Pro)
+- **Database & Auth:** Supabase (PostgreSQL)
+- **Testing:** Playwright
 
-## 👨‍💻 Author
-Built by Okolo Dumebi (Chukwudumebi Precious Okolo) — Technical Writer & Developer Educator.
+## 💻 Local Development Setup
+
+To run Ozigi locally, you will need Node.js (v18+) and `pnpm` installed.
+
+1. **Clone the repository:**
+   ```bash
+   git clone [https://github.com/Dumebii/OziGi.git](https://github.com/Dumebii/OziGi.git)
+   cd OziGi
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   pnpm install
+   ```
+
+3. **Configure Environment Variables:**
+   Create a `.env.local` file in the root directory and add your credentials:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   GOOGLE_CLOUD_PROJECT_ID=your_gcp_project_id
+   GOOGLE_CLOUD_CLIENT_EMAIL=your_gcp_client_email
+   GOOGLE_CLOUD_PRIVATE_KEY="your_gcp_private_key"
+   ```
+
+4. **Start the development server:**
+   ```bash
+   pnpm dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) to view the application.
+
+## 🤝 Philosophy & Contribution
+Ozigi was built to optimize the technical content lifecycle. It prioritizes workflow automation and developer experience (DevEx) over complex prompt engineering. If you have suggestions for new integrations (e.g., scheduling APIs or Dev.to publishing), feel free to open an issue or submit a pull request!
