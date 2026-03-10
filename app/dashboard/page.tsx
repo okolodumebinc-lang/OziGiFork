@@ -277,37 +277,54 @@ export default function Dashboard() {
           </h2>
 
           {errorMessage && (
-            <div className="mb-8 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-medium flex items-center gap-2 shadow-sm">
-              <span className="text-lg">⚠️</span> {errorMessage}
+            <div className="mb-8 p-5 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm font-bold flex items-center gap-3 shadow-sm animate-in fade-in slide-in-from-top-4">
+              <span className="text-xl">⚠️</span> {errorMessage}
             </div>
           )}
 
-          <Distillery
-            session={session}
-            userPersonas={personas}
-            inputs={inputs}
-            setInputs={setInputs}
-            loading={loading}
-            onOpenSettings={() => window.dispatchEvent(new Event("openSettingsModal"))}
-            onGenerate={handleGenerate} 
-          />
+          {/* 🔥 Goal 1: Hide Engine when campaign exists */}
+          {!campaign.length && !loading && (
+            <Distillery
+              session={session}
+              userPersonas={personas}
+              inputs={inputs}
+              setInputs={setInputs}
+              loading={loading}
+              onOpenSettings={() => window.dispatchEvent(new Event("openSettingsModal"))}
+              onGenerate={handleGenerate} 
+            />
+          )}
 
           {loading && (
-            <div className="mt-16 space-y-8 animate-pulse">
+            <div className="mt-8 space-y-8 animate-pulse">
               <div className="h-8 bg-slate-200 rounded w-64 mx-auto mb-8"></div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="bg-slate-100 rounded-[2rem] h-96 border-2 border-slate-200"
-                  ></div>
+                  <div key={i} className="bg-slate-100 rounded-[1.5rem] h-96 border border-slate-200"></div>
                 ))}
               </div>
             </div>
           )}
 
+          {/* 🔥 Goal 1: Bring user immediately to grid with a reset button */}
           {campaign.length > 0 && !loading && (
-            <div className="mt-16 scroll-mt-32" ref={campaignRef}>
+            <div className="mt-4 animate-in fade-in slide-in-from-bottom-8">
+              <div className="flex justify-between items-center mb-8">
+                <button 
+                  onClick={() => setCampaign([])} // Clears campaign, brings engine back
+                  className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-700 transition-colors bg-white px-5 py-3 rounded-xl border border-slate-200 shadow-sm hover:shadow-md active:scale-95"
+                >
+                  ← Architect New Campaign
+                </button>
+              </div>
+
+              {/* <div className="scroll-mt-32" ref={campaignRef}>
+                <DistributionGrid campaign={campaign} session={session} />
+              </div>
+            </div>
+          )}
+          {campaign.length > 0 && !loading && (
+            <div className="mt-16 scroll-mt-32" ref={campaignRef}> */}
               <DistributionGrid
                 campaign={campaign}
                 session={session}
