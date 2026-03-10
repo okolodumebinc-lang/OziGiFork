@@ -1,62 +1,70 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Ozigi Context Engine & Persona Flow', () => {
-  
-  // OPTIONAL: If your dashboard is protected by Supabase auth, 
-  // you might need a globalSetup to inject a logged-in session cookie here, 
-  // or use Playwright's storageState. Let's assume the page loads for this test.
-
-  test('should create a persona, intercept AI, and render the campaign', async ({ page }) => {
-    
-    // 1. Navigate to the dashboard
+test.describe('Ozigi Context Engine Workflow', () => {
+  test.beforeEach(async ({ page }) => {
     await page.goto('/dashboard');
+  });
 
-    // 2. Handle the standard browser alert that pops up when saving a persona
-    page.on('dialog', async (dialog) => {
-      expect(dialog.message()).toContain('Persona saved successfully!');
-      await dialog.accept();
-    });
+  test('should navigate Context Engine tabs and verify specific placeholders', async ({ page }) => {
+    // 1. Verify we are on the Dashboard
+    await expect(page.getByRole('heading', { name: 'Context Engine' })).toBeVisible();
 
-    // --- TEST PART A: THE RADIO TOWER & SETTINGS MODAL ---
+    // 2. Link Tab (Default)
+    const urlInput = page.getByPlaceholder('Paste an article or blog post URL...');
+    await expect(urlInput).toBeVisible();
+
+    // 3. Notes Tab
+    // Using exact text from your tab buttons in ContextEngine.tsx
+    await page.getByRole('button', { name: '📝 Notes' }).click();
+    const textInput = page.getByPlaceholder('Paste your raw thoughts, meeting transcripts, or rough drafts here...');
+    await expect(textInput).toBeVisible();
+
+    // 4. Files Tab
+    await page.getByRole('button', { name: '📎 Files' }).click();
+    await expect(page.getByText('Upload PDF or Image')).toBeVisible();
+  });
+
+  test('should toggle Advanced Options and render the unauthenticated lock state', async ({ page }) => {
+    // Advanced options should be hidden initially
+    await expect(page.getByText('🗣️ Voice or Persona')).toBeHidden();
+
+    // Click the exact progressive disclosure toggle text from your component
+    const advancedToggle = page.getByRole('button', { name: '⚙️ Advanced Options (Personas, Formats) ⬇' });
+    await advancedToggle.click();
+
+    // Verify the expanded options appear
+    await expect(page.getByText('🗣️ Voice or Persona')).toBeVisible();
+    await expect(page.getByText('Campaign Directives')).toBeVisible();
+    await expect(page.getByText('X (Twitter) Format')).toBeVisible();
+
+    // Verify the unauthenticated fallback logic triggers successfully (Playwright runs as guest)
+    await expect(page.getByText('🔒 Sign in to unlock')).toBeVisible();
+  });
+
+  test('should populate URL from Quick Examples, mock generation, and display Distribution Grid', async ({ page }) => {
+    // 1. Click the built-in "Ozigi V2" quick example button instead of hardcoding a fake URL
+    await page.getByRole('button', { name: 'Ozigi V2' }).click();
     
-    // Select the "Create New Persona" option from the dropdown
-    // Note: Adjust the locator if your select has a specific label/ID
-    await page.locator('select').selectOption('create_new');
+    // 2. Verify the input state successfully updated to the exact hardcoded URL in ContextEngine.tsx
+    const urlInput = page.getByPlaceholder('Paste an article or blog post URL...');
+    await expect(urlInput).toHaveValue('https://dev.to/dumebii/ozigi-v2-changelog-building-a-modular-agentic-content-engine-with-nextjs-supabase-and-playwright-59mo');
 
-    // Assert the Settings Modal opened by checking for the specific header
-    await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
-
-    // Fill out the new Persona details
-    await page.getByPlaceholder('e.g., Snarky Indie Hacker').fill('Test Engineer Persona');
-    await page.getByPlaceholder('e.g., Write with high burstiness...').fill('Always use brackets.');
-    
-    // Save it and ensure the modal closes
-    await page.getByRole('button', { name: '+ Save New Persona' }).click();
-    await expect(page.getByRole('heading', { name: 'Settings' })).toBeHidden();
-
-
-    // --- TEST PART B: THE CONTEXT ENGINE & NETWORK MOCKING ---
-
-    // Fill out the Context fields (adjust placeholders to match your actual UI)
-    // Assuming you have an input for URL and a textarea for the Additional Directives
-    await page.getByPlaceholder('Paste a URL').fill('https://ozigi.app/docs');
-    
-    // Mock the Vertex AI backend response
+    // 3. Mock the Vertex AI / Backend Response matching the exact structure expected by dashboard/page.tsx
     await page.route('**/api/generate', async (route) => {
+      // The frontend expects the JSON stringified inside the `output` key
       const jsonResponse = {
         output: JSON.stringify({
           campaign: [
             {
               day: 1,
-              x: "Day 1 Thread: Ozigi is tested and working! 1/2\n\n[The content engine is officially alive.]",
-              linkedin: "LinkedIn Post: Ozigi testing complete.",
-              discord: "Discord Update: Systems green."
+              x: "Mocked Twitter Thread 1/3\n\n[Ozigi Playwright Mock Success]",
+              linkedin: "Mocked LinkedIn Post here.",
+              discord: "Mocked Discord Server Alert"
             }
           ]
         })
       };
       
-      // Fulfill the route with our fake, instant AI response
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -64,17 +72,17 @@ test.describe('Ozigi Context Engine & Persona Flow', () => {
       });
     });
 
-    // Click the Generate Button
-    await page.getByRole('button', { name: /Generate Campaign/i }).click();
+    // 4. Trigger Generation using the exact button text
+    const generateBtn = page.getByRole('button', { name: 'Generate Campaign ⚡' });
+    await expect(generateBtn).toBeEnabled();
+    await generateBtn.click();
 
-    // Assert the Dynamic Loader appears immediately
-    // Looking for the specific container classes we added earlier
-    const loaderContainer = page.locator('.animate-in.fade-in');
-    await expect(loaderContainer).toBeVisible();
+    // 5. Assert UI Layout Shift (Distillery hides, Reset Button appears)
+    const resetBtn = page.getByRole('button', { name: '← Architect New Campaign' });
+    await expect(resetBtn).toBeVisible();
 
-    // Assert the mocked data is rendered into the Distribution Grid
-    // Wait for the loader to disappear and the grid to render
-    await expect(page.getByText('Ozigi is tested and working!')).toBeVisible();
-    await expect(page.getByText('[The content engine is officially alive.]')).toBeVisible();
+    // 6. Assert Mock Data successfully rendered in the Distribution Grid
+    await expect(page.getByText('Mocked Twitter Thread 1/3')).toBeVisible();
+    await expect(page.getByText('[Ozigi Playwright Mock Success]')).toBeVisible();
   });
 });
