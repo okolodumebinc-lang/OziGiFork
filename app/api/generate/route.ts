@@ -65,28 +65,42 @@ export async function POST(req: Request) {
       parts.push({ inlineData: { data: base64Data, mimeType: file.type } });
     }
 
+    // ==========================================
+    // ⚡ THE OIDC HANDSHAKE (FINAL STABLE VERSION)
+    // ==========================================
     let authOptions = {};
 
     if (process.env.GCP_WORKLOAD_IDENTITY_POOL_ID) {
-      //const audience = `//iam.googleapis.com/projects/${process.env.GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/${process.env.GCP_WORKLOAD_IDENTITY_POOL_ID}/providers/${process.env.GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID}`;
+      // Clean variables to prevent 400 "Invalid Argument" errors from hidden spaces
+      const projectNumber = process.env.GCP_PROJECT_NUMBER?.trim();
+      const poolId = process.env.GCP_WORKLOAD_IDENTITY_POOL_ID?.trim();
+      const providerId = process.env.GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID?.trim();
+      const saEmail = process.env.GCP_SERVICE_ACCOUNT_EMAIL?.trim();
+      const projectId = process.env.GCP_PROJECT_ID?.trim();
 
-const audience = `//iam.googleapis.com/projects/${process.env.GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/${process.env.GCP_WORKLOAD_IDENTITY_POOL_ID}/providers/${process.env.GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID}`;
+      const audience = `//iam.googleapis.com/projects/${projectNumber}/locations/global/workloadIdentityPools/${poolId}/providers/${providerId}`;
 
       const authClient = ExternalAccountClient.fromJSON({
         type: 'external_account',
         audience: audience,
         subject_token_type: 'urn:ietf:params:oauth:token-type:jwt',
         token_url: 'https://sts.googleapis.com/v1/token',
-        // ⚡ CHANGE: Replacing the "-" with your actual Project ID
-        service_account_impersonation_url: `https://iamcredentials.googleapis.com/v1/projects/${process.env.GCP_PROJECT_ID}/serviceAccounts/${process.env.GCP_SERVICE_ACCOUNT_EMAIL}:generateAccessToken`,
+        // The "-" project path is the most stable for federated impersonation
+        service_account_impersonation_url: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${saEmail}:generateAccessToken`,
         subject_token_supplier: {
           getSubjectToken: async () => await getVercelOidcToken(),
         },
       });
 
-      authOptions = { authClient, projectId: process.env.GCP_PROJECT_ID };
+      authOptions = {
+        authClient,
+        projectId: projectId,
+      };
     } else {
-      authOptions = { keyFilename: path.join(process.cwd(), "gcp-service-account.json") };
+      // Fallback for local development if you have a local JSON key
+      authOptions = {
+        keyFilename: path.join(process.cwd(), "gcp-service-account.json"),
+      };
     }
 
     const vertex_ai = new VertexAI({
@@ -112,6 +126,9 @@ const audience = `//iam.googleapis.com/projects/${process.env.GCP_PROJECT_NUMBER
 
   } catch (err: any) {
     console.error("🔥 VERTEX AI CRASH:", err);
-    return NextResponse.json({ error: err.message || "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ 
+        error: err.message || "Internal Server Error",
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined 
+    }, { status: 500 });
   }
 }
