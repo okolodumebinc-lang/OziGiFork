@@ -107,12 +107,14 @@ export async function POST(req: Request) {
 
 
     // ⚡ THE BASE64 FILE BYPASS
+   // ==========================================
+    // ⚡ THE ENTERPRISE MINIFIED BYPASS
+    // ==========================================
     let authOptions = {};
 
-    if (process.env.GOOGLE_BASE64_JSON) {
-      // PROD: Decode the pristine Base64 string back into a perfect JSON object
-      const decodedJsonString = Buffer.from(process.env.GOOGLE_BASE64_JSON, 'base64').toString('utf-8');
-      const gcpCredentials = JSON.parse(decodedJsonString);
+    if (process.env.GCP_CREDENTIALS) {
+      // PROD: Parse the perfectly escaped, single-line JSON string
+      const gcpCredentials = JSON.parse(process.env.GCP_CREDENTIALS);
       
       authOptions = {
         credentials: {
@@ -121,7 +123,7 @@ export async function POST(req: Request) {
         },
       };
     } else {
-      // LOCAL: Fallback to the local file if the env var isn't present
+      // LOCAL: Fallback to the local file
       authOptions = {
         keyFilename: path.join(process.cwd(), "gcp-service-account.json"),
       };
