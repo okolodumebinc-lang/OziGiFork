@@ -110,7 +110,7 @@ export async function POST(req: Request) {
     });
 
     const model = vertex_ai.getGenerativeModel({ 
-      model: "gemini-2.0-flash", 
+      model: "gemini-2.5-flash", 
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: distributionSchema,
