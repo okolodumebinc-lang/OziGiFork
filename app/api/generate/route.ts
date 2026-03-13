@@ -6,6 +6,30 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import path from "path";
 
+// ==========================================
+// 🛡️ THE TITANIUM PEM RECONSTRUCTOR
+// ==========================================
+// This completely bypasses Vercel's environment variable formatting bugs.
+function buildFlawlessPrivateKey(brokenKey: string): string {
+  // 1. Strip headers, footers, and any accidental quotes
+  let purePayload = brokenKey
+    .replace(/-----BEGIN PRIVATE KEY-----/g, '')
+    .replace(/-----END PRIVATE KEY-----/g, '')
+    .replace(/"/g, '');
+
+  // 2. Strip ALL noise: spaces, literal newlines, escaped newlines, carriage returns
+  purePayload = purePayload.replace(/\\n/g, '').replace(/[\s\r\n]/g, '');
+
+  // 3. Mathematically rebuild the key exactly how OpenSSL demands (64 chars per line)
+  const chunks = purePayload.match(/.{1,64}/g)?.join('\n') || '';
+
+  // 4. Reattach the headers with explicit, perfect line breaks
+  return `-----BEGIN PRIVATE KEY-----\n${chunks}\n-----END PRIVATE KEY-----\n`;
+}
+
+// ==========================================
+// 1. INITIALIZE SECURITY LAYER (UPSTASH)
+// ==========================================
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL!,
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
@@ -22,7 +46,6 @@ const distributionSchema = {
   properties: {
     campaign: {
       type: SchemaType.ARRAY,
-      description: "A list of 3 daily social media posts.",
       items: {
         type: SchemaType.OBJECT,
         properties: {
@@ -38,6 +61,9 @@ const distributionSchema = {
   required: ["campaign"]
 };
 
+// ==========================================
+// 3. MAIN API CONTROLLER
+// ==========================================
 export async function POST(req: Request) {
   try {
     const ip = req.headers.get("x-forwarded-for") ?? "127.0.0.1";
@@ -79,22 +105,18 @@ export async function POST(req: Request) {
       parts.push({ inlineData: { data: base64Data, mimeType: file.type } });
     }
 
-    // HYBRID AUTH (LOCAL FILE vs VERCEL ENV)
+    // ==========================================
+    // ⚡ BULLETPROOF VERTEX AI INIT
+    // ==========================================
     let authOptions = {};
     if (process.env.GOOGLE_PRIVATE_KEY && process.env.GOOGLE_CLIENT_EMAIL) {
+      // Pass Vercel's broken string through our reconstructor
+      const pristineKey = buildFlawlessPrivateKey(process.env.GOOGLE_PRIVATE_KEY);
       
-      // ⚡ THE OPEN-SSL SANITIZER
-      const cleanPrivateKey = process.env.GOOGLE_PRIVATE_KEY
-        .replace(/"/g, '')           // 1. Strip any accidental quotes
-        .replace(/\\n/g, '\n')       // 2. Convert escaped \n to real newlines (just in case)
-        .split('\n')                 // 3. Break the string apart at every newline
-        .map(line => line.trim())    // 4. DESTROY invisible trailing/leading spaces (The OpenSSL Killer)
-        .join('\n');                 // 5. Reassemble with perfect line breaks
-
       authOptions = {
         credentials: {
           client_email: process.env.GOOGLE_CLIENT_EMAIL,
-          private_key: cleanPrivateKey,
+          private_key: pristineKey,
         },
       };
     } else {
@@ -126,7 +148,6 @@ export async function POST(req: Request) {
 
   } catch (err: any) {
     console.error("🔥 VERTEX AI CRASH:", err);
-    // Return the actual error message if it's a rate limit or a known issue
     return NextResponse.json({ error: err.message || "Internal Server Error" }, { status: 500 });
   }
 }
